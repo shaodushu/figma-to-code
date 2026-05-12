@@ -1,107 +1,138 @@
 ---
 name: figma-to-code
-description: This skill should be used when the user asks to "convert figma to code", "figma to react", "figma 转代码", "设计稿转代码", "figma design to code", "generate code from figma file", or wants to export Figma designs as React/Vue components using a local LLM. Handles offline .fig file processing, Figma Desktop plugin usage, and code generation with DeepSeek-v4-flash.
-version: 0.1.0
+description: This skill should be used when the user asks to "convert figma to code", "figma to react", "figma 转代码", "设计稿转代码", "figma design to code", "generate code from figma file", or wants to export Figma designs as React/Vue components using a local LLM. Supports cross-network workflow: export on an internet-connected machine, transfer the intermediate JSON, then generate code on the intranet side with DeepSeek-v4-flash.
+version: 0.2.0
 ---
 
 # Figma to Code
 
-Convert Figma design files (`.fig`) into production-ready React + Tailwind CSS components
-using a local DeepSeek-v4-flash LLM in an intranet/offline environment.
+Convert Figma design files (`.fig`) into production-ready React + Tailwind CSS components.
+Designed for intranet environments where the LLM (DeepSeek-v4-flash) and Figma Desktop
+live on different networks.
 
 ## Pipeline Overview
 
 ```
-.fig file → Figma Desktop → Export Plugin → node-tree.json + assets/
-                                              ↓
-                                    generate_code.py + DeepSeek-v4-flash
-                                              ↓
-                                    React .tsx components + Tailwind
+┌── 外网（有 Figma） ──────────────────────────────────────────────────┐
+│                                                                       │
+│   .fig file → Figma Desktop → Export Plugin → tree.json + assets/    │
+│                                                                       │
+└───────────────────────────────────────────────────────────────────────┘
+                          │
+                    tree.json + assets/   ← 通过 USB / 安全传输
+                          │
+┌── 内网（有 DeepSeek） ────────────────────────────────────────────────┐
+│                                                                       │
+│   tree.json → generate_code.py + DeepSeek-v4-flash                    │
+│                     ↓                                                 │
+│   output/  (React .tsx 组件 + Tailwind)                               │
+│                                                                       │
+└───────────────────────────────────────────────────────────────────────┘
 ```
+
+两步分离，各取所需：外网用 Figma Desktop（正常登录，100% 准确），内网用自有 LLM。
 
 ## When to Use
 
 Trigger this skill when the user:
-- Wants to generate React/Vue code from Figma designs
+- Wants to generate React/Vue/Tailwind code from Figma designs
 - Has a `.fig` file or Figma design they want to convert
 - Mentions "figma to code", "design to code", "设计稿转代码"
 - Needs to set up or debug the Figma export plugin
-- Wants to improve code generation quality from Figma designs
+- Is working in a cross-network environment (intranet LLM, internet Figma)
 
 ## Workflow
 
-### Step 1: Check Environment
+There are two steps, typically run on different machines.
 
-Verify the prerequisites:
-```bash
-python3 -c "import openai; print('openai OK')" 2>&1 || echo "pip install openai"
-```
+### Step 1: Export on the Internet Machine (Figma Desktop)
 
-Check environment variables:
-```bash
-echo "API Key: ${DEEPSEEK_API_KEY:0:8}..."
-echo "Base URL: $DEEPSEEK_BASE_URL"
-echo "Model: ${DEEPSEEK_MODEL:-deepseek-v4-flash}"
-```
+This machine needs Figma Desktop with a logged-in account and internet access.
 
-If not set, configure:
+**Load the plugin (one-time setup):**
+1. Copy `scripts/` from this repo to the internet machine
+2. Open Figma Desktop → Plugins → Development → "Import plugin from manifest"
+3. Select `scripts/figma_export_manifest.json`
+
+**Export the design:**
+1. Open the `.fig` file in Figma Desktop
+2. Run: Plugins → Development → "Figma to Code Exporter"
+3. The plugin downloads two things:
+   - `{filename}_figma_tree.json` — complete node tree with layout, styles, text
+   - SVG/PNG files — vector shapes and images
+
+**Troubleshooting:**
+- Plugin not visible → check `main` and `ui` fields in the manifest
+- Download blocked → check browser pop-up blocker in Figma settings
+- Large file → plugin may take 30-60 seconds for complex designs
+
+### Step 2: Generate Code on the Intranet (DeepSeek-v4-flash)
+
+Transfer `tree.json` + `assets/` to the intranet machine, then:
+
 ```bash
+cd ~/Code/figma-to-code
+
+# Check prerequisites
+python3 -c "import openai; print('OK')" || pip install openai
+
+# Configure DeepSeek connection
 export DEEPSEEK_API_KEY="your-api-key"
 export DEEPSEEK_BASE_URL="http://your-server:8000/v1"
 export DEEPSEEK_MODEL="deepseek-v4-flash"
-```
 
-### Step 2: Export from Figma Desktop
-
-The Figma export plugin is at `scripts/figma_export_plugin.js` in this skill's
-project directory (`~/Code/figma-to-code/`).
-
-**To load the plugin:**
-1. Open Figma Desktop and open the design file
-2. Right-click in the canvas → Plugins → Development → "Import plugin from manifest"
-3. Select `scripts/figma_export_manifest.json`
-4. Run the plugin: Plugins → Development → "Figma to Code Exporter"
-
-The plugin will download:
-- `{filename}_figma_tree.json` — the complete node tree
-- SVG/PNG asset files — vector shapes, images
-
-**Troubleshooting exports:**
-- If the plugin doesn't appear, verify `main` and `ui` fields in manifest match actual filenames
-- If download doesn't start, check browser pop-up blocker
-- For large files, the plugin may take a minute to traverse all nodes
-
-### Step 3: Generate Code
-
-Run the generation script:
-```bash
-cd ~/Code/figma-to-code
+# Generate code
 python scripts/generate_code.py path/to/figma_tree.json -o ./output
 ```
 
 **Common options:**
-- `--frame FrameName` — process only a specific frame
-- `--list-frames` — list all frames in the tree
-- `--dry-run` — preview the prompt without calling the LLM
-- `--max-tokens 4096` — limit output token count
+| Flag | Purpose |
+|------|---------|
+| `--frame LoginForm` | Process a single frame by name |
+| `--list-frames` | List all frames in the tree |
+| `--dry-run` | Preview the prompt without calling LLM |
+| `--max-tokens 4096` | Limit response token count |
 
-**For large designs:**
-Process one frame at a time to stay within context limits:
+**For large designs** — process frame by frame:
 ```bash
-python scripts/generate_code.py tree.json --frame "LoginPage" -o ./output
+python scripts/generate_code.py tree.json --list-frames    # list frames
+python scripts/generate_code.py tree.json --frame "Login" -o ./output
 python scripts/generate_code.py tree.json --frame "Dashboard" -o ./output
 ```
 
-### Step 4: Integrate into Project
+### Step 3: Integrate into Your Project
 
-The generated files go to the output directory. Each component is a `.tsx` file
-with imports. Copy them into your project:
 ```bash
-cp -r output/* your-project/src/components/
+cp -r output/src/components/* your-project/src/components/
 cp -r assets/ your-project/src/assets/
 ```
 
-Verify imports resolve correctly and adjust paths as needed.
+Verify import paths resolve and adjust as needed.
+
+## Complete One-Machine Workflow (Reference)
+
+If both Figma Desktop and DeepSeek are accessible on the same machine:
+
+```bash
+# 1. Export using Figma Desktop plugin → tree.json + assets/
+# 2. Generate
+python scripts/generate_code.py tree.json -o ./output
+
+# Or use the convenience script
+python scripts/pipeline.py tree.json -o ./output
+```
+
+## Three Transfer Strategies
+
+Choose based on bandwidth and data sensitivity:
+
+| Strategy | Transfer | LLM runs on | Best for |
+|----------|----------|-------------|----------|
+| **A: JSON 传输** | tree.json (~百KB) | 内网 | 最推荐，JSON 极小 |
+| **B: 代码传输** | 生成的 .tsx (~几十KB) | 外网 | LLM 在外网时 |
+| **C: 全外网** | 最终组件 | 外网 | 最省事（如果允许） |
+
+**Strategy A is the default.** JSON is small, portable, and the LLM stays in the intranet.
 
 ## Improving Results
 
@@ -126,7 +157,7 @@ For the complete Figma node type → React/Tailwind mapping, read
 
 ## Scripts
 
-- `scripts/generate_code.py` — main code generation pipeline
+- `scripts/generate_code.py` — code generation via DeepSeek-v4-flash
 - `scripts/figma_export_plugin.js` — Figma Desktop export plugin
 - `scripts/figma_export_manifest.json` — Figma plugin manifest
 
