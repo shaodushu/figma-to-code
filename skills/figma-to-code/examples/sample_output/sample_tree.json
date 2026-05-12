@@ -1,0 +1,153 @@
+{
+  "meta": {
+    "fileName": "Sample Design",
+    "exportedAt": "2026-05-12T00:00:00Z",
+    "pageCount": 1,
+    "nodeCount": 8
+  },
+  "pages": [
+    {
+      "id": "0:1",
+      "name": "Page 1",
+      "type": "PAGE",
+      "children": [
+        {
+          "id": "1:1",
+          "name": "LoginCard",
+          "type": "FRAME",
+          "visible": true,
+          "x": 0,
+          "y": 0,
+          "w": 400,
+          "h": 320,
+          "fills": [{"type": "SOLID", "color": "#ffffff"}],
+          "r": 12,
+          "effects": [{"type": "DROP_SHADOW", "color": "rgba(0,0,0,0.10)", "offset": {"x": 0, "y": 4}, "radius": 12}],
+          "layout": {
+            "layoutMode": "VERTICAL",
+            "primaryAxisAlignItems": "CENTER",
+            "counterAxisAlignItems": "CENTER",
+            "paddingTop": 32,
+            "paddingRight": 24,
+            "paddingBottom": 32,
+            "paddingLeft": 24,
+            "itemSpacing": 16
+          },
+          "children": [
+            {
+              "id": "1:2",
+              "name": "Title",
+              "type": "TEXT",
+              "visible": true,
+              "x": 24,
+              "y": 32,
+              "w": 352,
+              "h": 36,
+              "text": {
+                "content": "Welcome Back",
+                "fontSize": 28,
+                "fontWeight": 700,
+                "lineHeight": {"value": 1.2, "unit": "MULTIPLIER"},
+                "textAlignHorizontal": "CENTER",
+                "fills": [{"type": "SOLID", "color": "#1f2937"}]
+              }
+            },
+            {
+              "id": "1:3",
+              "name": "EmailInput",
+              "type": "FRAME",
+              "visible": true,
+              "x": 24,
+              "y": 84,
+              "w": 352,
+              "h": 48,
+              "fills": [{"type": "SOLID", "color": "#f9fafb"}],
+              "r": 8,
+              "strokes": {
+                "paints": [{"type": "SOLID", "color": "#d1d5db"}],
+                "weight": 1
+              },
+              "layout": {
+                "layoutMode": "HORIZONTAL",
+                "primaryAxisAlignItems": "MIN",
+                "counterAxisAlignItems": "CENTER",
+                "paddingLeft": 16,
+                "paddingRight": 16,
+                "itemSpacing": 8
+              },
+              "children": [
+                {
+                  "id": "1:4",
+                  "name": "Placeholder",
+                  "type": "TEXT",
+                  "visible": true,
+                  "x": 40,
+                  "y": 98,
+                  "w": 296,
+                  "h": 20,
+                  "opacity": 0.4,
+                  "text": {
+                    "content": "Enter your email",
+                    "fontSize": 14,
+                    "fontWeight": 400,
+                    "fills": [{"type": "SOLID", "color": "#6b7280"}]
+                  }
+                }
+              ]
+            },
+            {
+              "id": "1:5",
+              "name": "SubmitButton",
+              "type": "FRAME",
+              "visible": true,
+              "isInstance": true,
+              "componentId": "btn:primary",
+              "componentName": "Button/Primary",
+              "x": 24,
+              "y": 160,
+              "w": 352,
+              "h": 48,
+              "fills": [{"type": "SOLID", "color": "#3b82f6"}],
+              "r": 8,
+              "effects": [{"type": "DROP_SHADOW", "color": "rgba(59,130,246,0.30)", "offset": {"x": 0, "y": 2}, "radius": 6}],
+              "layout": {
+                "layoutMode": "HORIZONTAL",
+                "primaryAxisAlignItems": "CENTER",
+                "counterAxisAlignItems": "CENTER",
+                "itemSpacing": 8
+              },
+              "children": [
+                {
+                  "id": "1:6",
+                  "name": "Label",
+                  "type": "TEXT",
+                  "visible": true,
+                  "w": 60,
+                  "h": 20,
+                  "text": {
+                    "content": "Sign In",
+                    "fontSize": 16,
+                    "fontWeight": 600,
+                    "fills": [{"type": "SOLID", "color": "#ffffff"}]
+                  }
+                }
+              ]
+            },
+            {
+              "id": "1:7",
+              "name": "Divider",
+              "type": "VECTOR",
+              "visible": true,
+              "x": 24,
+              "y": 220,
+              "w": 352,
+              "h": 1,
+              "fills": [{"type": "SOLID", "color": "#e5e7eb"}],
+              "assetRef": "Divider_1_7.svg"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

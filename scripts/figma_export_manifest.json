@@ -1,0 +1,10 @@
+{
+  "name": "Figma to Code Exporter",
+  "id": "figma-to-code-exporter",
+  "api": "1.0.0",
+  "main": "figma_export_plugin.js",
+  "ui": "ui.html",
+  "capabilities": [],
+  "enableProposedApi": false,
+  "editorType": ["figma"]
+}
